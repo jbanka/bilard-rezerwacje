@@ -4,6 +4,13 @@ Projekt budowany w parze z **Claude Code** (model: Claude Sonnet 4.6) w trybie k
 
 ---
 
+**Kod aplikacji** znajduje się w branchach: 
+
+ - **poc-pre-code-review-fixes**
+ - **poc-post-code-review-fixes**
+
+---
+
 ### Branch: `poc-pre-code-review-fixes`
 
 Pierwsza działająca wersja POC. Zbudowana krok po kroku zgodnie z `PLAN_DEV_POC.md`:
