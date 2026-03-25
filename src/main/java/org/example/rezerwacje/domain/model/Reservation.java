@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,29 +16,37 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(name = "owner_id", nullable = false)
     private String ownerId;
 
-    @Column(nullable = false)
+    @Column(name = "owner_email", nullable = false)
     private String ownerEmail;
 
-    @Column(nullable = false)
+    @Column(name = "start_time", nullable = false)
     private OffsetDateTime startTime;
 
-    @Column(nullable = false)
+    @Column(name = "end_time", nullable = false)
     private OffsetDateTime endTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private ReservationStatus status = ReservationStatus.ACTIVE;
 
-    @Column(nullable = false)
-    private OffsetDateTime createdAt = OffsetDateTime.now();
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private OffsetDateTime createdAt;
 
+    @Column(name = "cancelled_at")
     private OffsetDateTime cancelledAt;
 
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReservationGuest> guests = new ArrayList<>();
+
+    @PrePersist
+    void prePersist() {
+        if (this.createdAt == null) {
+            this.createdAt = OffsetDateTime.now();
+        }
+    }
 
     protected Reservation() {
     }
@@ -60,5 +69,7 @@ public class Reservation {
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public OffsetDateTime getCancelledAt() { return cancelledAt; }
     public void setCancelledAt(OffsetDateTime cancelledAt) { this.cancelledAt = cancelledAt; }
-    public List<ReservationGuest> getGuests() { return guests; }
+    public List<ReservationGuest> getGuests() { return Collections.unmodifiableList(guests); }
+
+    public void addGuest(ReservationGuest guest) { guests.add(guest); }
 }

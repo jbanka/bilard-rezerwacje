@@ -4,6 +4,7 @@ import org.example.rezerwacje.api.dto.AvailabilityResponse;
 import org.example.rezerwacje.api.dto.AvailabilityResponse.SlotDto;
 import org.example.rezerwacje.config.AvailabilityProperties;
 import org.example.rezerwacje.domain.model.Reservation;
+import org.example.rezerwacje.domain.model.ReservationStatus;
 import org.example.rezerwacje.domain.repository.ReservationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,22 +18,27 @@ public class AvailabilityService {
 
     private final ReservationRepository reservationRepository;
     private final AvailabilityProperties props;
+    private final LocalTime dayStart;
+    private final LocalTime dayEnd;
 
     public AvailabilityService(ReservationRepository reservationRepository,
                                 AvailabilityProperties props) {
         this.reservationRepository = reservationRepository;
         this.props = props;
+        this.dayStart = LocalTime.parse(props.dayStart());
+        this.dayEnd   = LocalTime.parse(props.dayEnd());
     }
 
     @Transactional(readOnly = true)
     public AvailabilityResponse forDate(LocalDate date, ZoneOffset zoneOffset) {
-        LocalTime start = LocalTime.parse(props.dayStart());
-        LocalTime end   = LocalTime.parse(props.dayEnd());
+        LocalTime start = dayStart;
+        LocalTime end   = dayEnd;
 
         OffsetDateTime dayStart = OffsetDateTime.of(date, start, zoneOffset);
         OffsetDateTime dayEnd   = OffsetDateTime.of(date, end, zoneOffset);
 
-        List<Reservation> occupied = reservationRepository.findActiveInRange(dayStart, dayEnd);
+        List<Reservation> occupied = reservationRepository.findActiveInRange(
+                dayStart, dayEnd, ReservationStatus.ACTIVE);
 
         List<SlotDto> slots = new ArrayList<>();
         OffsetDateTime cursor = dayStart;

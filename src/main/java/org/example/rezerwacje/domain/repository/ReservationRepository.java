@@ -15,22 +15,24 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
 
     @Query("""
             SELECT COUNT(r) FROM Reservation r
-            WHERE r.status = 'ACTIVE'
+            WHERE r.status = :status
               AND r.startTime < :endTime
               AND r.endTime   > :startTime
             """)
     long countConflicts(@Param("startTime") OffsetDateTime startTime,
-                        @Param("endTime") OffsetDateTime endTime);
+                        @Param("endTime") OffsetDateTime endTime,
+                        @Param("status") ReservationStatus status);
 
     @Query("""
             SELECT r FROM Reservation r
-            WHERE r.status = 'ACTIVE'
+            WHERE r.status = :status
               AND r.startTime < :endTime
               AND r.endTime   > :startTime
             ORDER BY r.startTime
             """)
     List<Reservation> findActiveInRange(@Param("startTime") OffsetDateTime startTime,
-                                        @Param("endTime") OffsetDateTime endTime);
+                                        @Param("endTime") OffsetDateTime endTime,
+                                        @Param("status") ReservationStatus status);
 
     @Query("SELECT DISTINCT r FROM Reservation r LEFT JOIN FETCH r.guests ORDER BY r.startTime")
     List<Reservation> findAllWithGuests();

@@ -38,12 +38,16 @@ public class ReservationService {
         OffsetDateTime start = request.startTime();
         OffsetDateTime end = request.endTime();
 
+        if (!end.isAfter(start)) {
+            throw new ValidationException("endTime musi być późniejszy niż startTime.");
+        }
+
         if (Duration.between(start, end).toMinutes() < MIN_SLOT_MINUTES) {
             throw new ValidationException(
                     "Minimalny czas rezerwacji to " + MIN_SLOT_MINUTES + " minut.");
         }
 
-        if (reservationRepository.countConflicts(start, end) > 0) {
+        if (reservationRepository.countConflicts(start, end, ReservationStatus.ACTIVE) > 0) {
             throw new ConflictException(
                     "Wybrany termin koliduje z istniejącą rezerwacją.");
         }
@@ -52,7 +56,7 @@ public class ReservationService {
 
         if (request.guests() != null) {
             request.guests().forEach(email ->
-                    reservation.getGuests().add(new ReservationGuest(reservation, email)));
+                    reservation.addGuest(new ReservationGuest(reservation, email)));
         }
 
         Reservation saved = reservationRepository.save(reservation);
@@ -62,7 +66,7 @@ public class ReservationService {
 
     @Transactional
     public Reservation cancel(UUID id, String callerId) {
-        Reservation reservation = reservationRepository.findById(id)
+        Reservation reservation = reservationRepository.findByIdWithGuests(id)
                 .orElseThrow(() -> new NotFoundException("Rezerwacja nie istnieje: " + id));
 
         if (!reservation.getOwnerId().equals(callerId)) {

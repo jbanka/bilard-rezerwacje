@@ -36,13 +36,16 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/h2-console/**"
+                                "/v3/api-docs/**"
                         ).permitAll()
+                        // POC only — H2 console dostępna wyłącznie w profilu dev (spring.h2.console.enabled=false w prod)
+                        .requestMatchers("/h2-console/**").permitAll()
+                        // DevTokenController jest @Profile("dev"), ale reguła jest jawna — nie używać w prod
                         .requestMatchers("/dev/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .headers(headers -> headers.frameOptions(fo -> fo.disable()))
+                // frameOptions sameOrigin dla H2 console w dev; prod nie używa H2 console
+                .headers(headers -> headers.frameOptions(fo -> fo.sameOrigin()))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

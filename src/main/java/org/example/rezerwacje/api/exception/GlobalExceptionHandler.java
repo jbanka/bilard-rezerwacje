@@ -9,6 +9,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.DateTimeException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -40,6 +42,13 @@ public class GlobalExceptionHandler {
         log.warn("Not found: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ErrorResponse.of(404, "Not Found", ex.getMessage()));
+    }
+
+    @ExceptionHandler(DateTimeException.class)
+    public ResponseEntity<ErrorResponse> handleDateTime(DateTimeException ex) {
+        log.warn("Invalid date/time parameter: {}", ex.getMessage());
+        return ResponseEntity.badRequest()
+                .body(ErrorResponse.of(400, "Bad Request", "Nieprawidłowy format daty lub strefy czasowej."));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

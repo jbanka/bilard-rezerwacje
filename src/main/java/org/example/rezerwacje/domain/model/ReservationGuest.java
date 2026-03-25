@@ -17,9 +17,10 @@ public class ReservationGuest {
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
 
-    @Column(nullable = false)
+    @Column(name = "email", nullable = false)
     private String email;
 
+    @Column(name = "notified_at")
     private OffsetDateTime notifiedAt;
 
     protected ReservationGuest() {

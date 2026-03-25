@@ -14,9 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -28,7 +25,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class ReservationServiceTest {
 
     @Mock
@@ -49,7 +45,7 @@ class ReservationServiceTest {
 
     @Test
     void create_validSlot_savesAndNotifies() {
-        when(reservationRepository.countConflicts(any(), any())).thenReturn(0L);
+        when(reservationRepository.countConflicts(any(), any(), any())).thenReturn(0L);
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
 
         var request = new CreateReservationRequest(BASE, BASE.plusMinutes(60), List.of());
@@ -75,7 +71,7 @@ class ReservationServiceTest {
 
     @Test
     void create_exactlyMinimum_succeeds() {
-        when(reservationRepository.countConflicts(any(), any())).thenReturn(0L);
+        when(reservationRepository.countConflicts(any(), any(), any())).thenReturn(0L);
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
 
         var request = new CreateReservationRequest(BASE, BASE.plusMinutes(30), List.of());
@@ -86,7 +82,7 @@ class ReservationServiceTest {
 
     @Test
     void create_conflictExists_throwsConflictException() {
-        when(reservationRepository.countConflicts(any(), any())).thenReturn(1L);
+        when(reservationRepository.countConflicts(any(), any(), any())).thenReturn(1L);
         var request = new CreateReservationRequest(BASE, BASE.plusMinutes(60), List.of());
 
         assertThatThrownBy(() -> reservationService.create(OWNER_ID, OWNER_EMAIL, request))
@@ -97,7 +93,7 @@ class ReservationServiceTest {
 
     @Test
     void create_touchingReservation_noConflict() {
-        when(reservationRepository.countConflicts(BASE, BASE.plusMinutes(60))).thenReturn(0L);
+        when(reservationRepository.countConflicts(BASE, BASE.plusMinutes(60), ReservationStatus.ACTIVE)).thenReturn(0L);
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
 
         var request = new CreateReservationRequest(BASE, BASE.plusMinutes(60), List.of());
@@ -108,7 +104,7 @@ class ReservationServiceTest {
 
     @Test
     void create_withGuests_savesGuests() {
-        when(reservationRepository.countConflicts(any(), any())).thenReturn(0L);
+        when(reservationRepository.countConflicts(any(), any(), any())).thenReturn(0L);
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
 
         var request = new CreateReservationRequest(
@@ -126,7 +122,7 @@ class ReservationServiceTest {
     void cancel_ownReservation_cancelsAndNotifies() {
         UUID id = UUID.randomUUID();
         Reservation r = activeReservation(OWNER_ID);
-        when(reservationRepository.findById(id)).thenReturn(Optional.of(r));
+        when(reservationRepository.findByIdWithGuests(id)).thenReturn(Optional.of(r));
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Reservation result = reservationService.cancel(id, OWNER_ID);
@@ -140,7 +136,7 @@ class ReservationServiceTest {
     void cancel_otherOwnersReservation_throwsForbidden() {
         UUID id = UUID.randomUUID();
         Reservation r = activeReservation("other-user");
-        when(reservationRepository.findById(id)).thenReturn(Optional.of(r));
+        when(reservationRepository.findByIdWithGuests(id)).thenReturn(Optional.of(r));
 
         assertThatThrownBy(() -> reservationService.cancel(id, OWNER_ID))
                 .isInstanceOf(ForbiddenException.class);
@@ -153,7 +149,7 @@ class ReservationServiceTest {
         UUID id = UUID.randomUUID();
         Reservation r = activeReservation(OWNER_ID);
         r.setStatus(ReservationStatus.CANCELLED);
-        when(reservationRepository.findById(id)).thenReturn(Optional.of(r));
+        when(reservationRepository.findByIdWithGuests(id)).thenReturn(Optional.of(r));
 
         assertThatThrownBy(() -> reservationService.cancel(id, OWNER_ID))
                 .isInstanceOf(ConflictException.class);

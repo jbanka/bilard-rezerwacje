@@ -1,9 +1,7 @@
 package org.example.rezerwacje.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.example.rezerwacje.config.JwtService;
-import org.example.rezerwacje.config.JwtProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +32,7 @@ class ReservationControllerTest {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
     private ObjectMapper mapper;
 
     private String tokenUser1;
@@ -44,7 +43,6 @@ class ReservationControllerTest {
 
     @BeforeEach
     void setUp() {
-        mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         tokenUser1 = jwtService.generate("user-1", "user1@example.com");
         tokenUser2 = jwtService.generate("user-2", "user2@example.com");
     }

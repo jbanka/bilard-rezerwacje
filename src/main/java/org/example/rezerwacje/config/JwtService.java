@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.Map;
 
 @Component
 public class JwtService {
@@ -28,7 +27,7 @@ public class JwtService {
         long nowMs = System.currentTimeMillis();
         return Jwts.builder()
                 .subject(userId)
-                .claims(Map.of("email", email))
+                .claim("email", email)
                 .issuedAt(new Date(nowMs))
                 .expiration(new Date(nowMs + jwtProperties.expirationMinutes() * 60_000))
                 .signWith(key())
