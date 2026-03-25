@@ -1,0 +1,36 @@
+# .claudeignore
+# Defines what Claude Code should NOT read in this repository.
+# Stack: Java / Spring Boot / Hibernate / PostgreSQL
+
+# ─── Secrets & environment-specific config ────────────────────────────────────
+# Keep application.yml and application-dev.yml visible — Claude needs them
+# to understand project structure, profiles, and feature flags.
+# Ignore only environment-specific overrides that may contain real credentials.
+.env
+.env.*
+**/application-local.*
+**/application-prod.*
+**/application-staging.*
+# TODO: add other profile names used in this project (e.g. application-uat.*)
+
+# ─── Build artifacts ──────────────────────────────────────────────────────────
+# Maven
+**/target/
+# Gradle — TODO: remove if project uses Maven only
+**/.gradle/
+**/build/
+
+# ─── Generated sources ────────────────────────────────────────────────────────
+# Hibernate metamodel, annotation processors (Lombok, MapStruct, etc.)
+# **/target/generated-sources/
+# **/target/generated-test-sources/
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+# May contain PII, stack traces with sensitive data, or DB dumps
+**/logs/
+*.log
+
+# ─── IDE & OS noise ───────────────────────────────────────────────────────────
+**/.idea/
+**/*.iml
+**/.DS_Store
